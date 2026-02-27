@@ -1,4 +1,17 @@
-﻿import { getScriptUrl, shortText } from "./_shared.js";
+﻿const DEFAULT_GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbyOz63Aehz-FiImn4NacvVk8-ZRH5r33G0UTgg5qZVTCNUTqHy_S0PIkuvCPanyD5pNpA/exec";
+
+function getScriptUrl(): string {
+  return (
+    process.env.VITE_GOOGLE_SCRIPT_URL ||
+    process.env.GOOGLE_SCRIPT_URL ||
+    DEFAULT_GOOGLE_SCRIPT_URL
+  );
+}
+
+function shortText(text: string, max = 500): string {
+  return text.substring(0, max);
+}
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
