@@ -14,6 +14,9 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local"), override: true });
 
+const DEFAULT_GOOGLE_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbwLoBCeCIUTBgv1Whd5QbJZRJJIG5t0peaTcCteoArEd8X70J-8QCzyh3CPH7qZZOi7Qg/exec";
+
 const db = new Database("pos_tracker.db");
 
 // Initialize Database
@@ -276,7 +279,7 @@ async function startServer() {
 
   // Cloud Proxy Endpoints (to bypass CORS)
   app.get("/api/cloud/fetch", async (req, res) => {
-    const scriptUrl = process.env.VITE_GOOGLE_SCRIPT_URL;
+    const scriptUrl = process.env.VITE_GOOGLE_SCRIPT_URL || DEFAULT_GOOGLE_SCRIPT_URL;
     if (!scriptUrl) {
       console.error("VITE_GOOGLE_SCRIPT_URL is missing from process.env");
       return res.status(500).json({ error: "VITE_GOOGLE_SCRIPT_URL is not defined in your Secrets/Environment." });
@@ -356,7 +359,7 @@ async function startServer() {
   });
 
   app.get("/api/cloud/stock", async (req, res) => {
-    const scriptUrl = process.env.VITE_GOOGLE_SCRIPT_URL;
+    const scriptUrl = process.env.VITE_GOOGLE_SCRIPT_URL || DEFAULT_GOOGLE_SCRIPT_URL;
     if (!scriptUrl) return res.status(500).json({ error: "VITE_GOOGLE_SCRIPT_URL is not defined." });
 
     try {
@@ -381,7 +384,7 @@ async function startServer() {
   });
 
   app.post("/api/cloud/sync", async (req, res) => {
-    const scriptUrl = process.env.VITE_GOOGLE_SCRIPT_URL;
+    const scriptUrl = process.env.VITE_GOOGLE_SCRIPT_URL || DEFAULT_GOOGLE_SCRIPT_URL;
     if (!scriptUrl) {
       return res.status(500).json({ error: "VITE_GOOGLE_SCRIPT_URL is not defined on server." });
     }

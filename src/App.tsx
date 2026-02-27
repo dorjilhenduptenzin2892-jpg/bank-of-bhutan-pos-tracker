@@ -289,12 +289,6 @@ export default function App() {
   };
 
   const fetchPaymentsFromCloud = useCallback(async () => {
-    const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
-    if (!scriptUrl) {
-      console.warn('VITE_GOOGLE_SCRIPT_URL is not defined');
-      return;
-    }
-
     setIsSyncing(true);
     setSyncError(null);
     try {
@@ -756,9 +750,7 @@ export default function App() {
                   </div>
                   <p className="text-[10px] text-slate-400 truncate max-w-[200px]" title={syncError}>{syncError}</p>
                   <p className="text-[8px] text-slate-300 font-mono">
-                    URL: {import.meta.env.VITE_GOOGLE_SCRIPT_URL ? 
-                      `${import.meta.env.VITE_GOOGLE_SCRIPT_URL.substring(0, 25)}...` : 
-                      'NOT SET'}
+                    URL: server proxy
                   </p>
                 </div>
               )}
@@ -807,7 +799,7 @@ export default function App() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={fetchPaymentsFromCloud}
-                        disabled={isSyncing || !import.meta.env.VITE_GOOGLE_SCRIPT_URL}
+                        disabled={isSyncing}
                         className={cn(
                           "flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border",
                           isSyncing ? "bg-slate-100 text-slate-400 border-slate-200" : 
@@ -1109,7 +1101,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={fetchPaymentsFromCloud}
-                      disabled={isSyncing || !import.meta.env.VITE_GOOGLE_SCRIPT_URL}
+                      disabled={isSyncing}
                       className={cn(
                         "p-2 rounded-lg transition-all",
                         isSyncing ? "bg-slate-100 text-slate-400" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
@@ -1331,7 +1323,7 @@ export default function App() {
                   </div>
                   <button 
                     onClick={syncStockFromCloud}
-                    disabled={isSyncingStock || !import.meta.env.VITE_GOOGLE_SCRIPT_URL}
+                    disabled={isSyncingStock}
                     className={cn(
                       "px-6 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2",
                       isSyncingStock ? "bg-slate-100 text-slate-400" : "bg-emerald-600 text-white hover:bg-emerald-700"
