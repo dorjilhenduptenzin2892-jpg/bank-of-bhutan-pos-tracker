@@ -298,8 +298,15 @@ export default function App() {
       const response = await fetch('/api/cloud/fetch');
       
       if (!response.ok) {
-        const errData = await response.json().catch(() => ({ error: 'Unknown proxy error' }));
-        throw new Error(errData.error || `HTTP error! status: ${response.status}`);
+        let errMsg = `HTTP error! status: ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMsg = errData.details ? `${errData.error}: ${errData.details}` : (errData.error || errMsg);
+        } catch {
+          const errText = await response.text().catch(() => '');
+          if (errText) errMsg = `${errMsg} - ${errText.substring(0, 200)}`;
+        }
+        throw new Error(errMsg);
       }
       
       const data = await response.json();

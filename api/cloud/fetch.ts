@@ -1,0 +1,44 @@
+import { extractJsonArray, getScriptUrl } from "./_shared";
+
+export default async function handler(req: any, res: any) {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const scriptUrl = getScriptUrl();
+
+  if (scriptUrl.includes("docs.google.com/spreadsheets")) {
+    return res.status(400).json({
+      error: "Wrong URL Type",
+      details:
+        "Use the Google Apps Script Web App URL from Deploy > Manage deployments.",
+    });
+  }
+
+  if (!scriptUrl.includes("script.google.com/macros/s/") || !scriptUrl.includes("/exec")) {
+    return res.status(400).json({
+      error: "Invalid Web App URL",
+      details: "URL must look like https://script.google.com/macros/s/.../exec",
+    });
+  }
+
+  try {
+    const response = await fetch(scriptUrl, { method: "GET", redirect: "follow" });
+    const text = await response.text();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: `Google Script returned HTTP ${response.status}`,
+        details: text.substring(0, 500),
+      });
+    }
+
+    const data = extractJsonArray(text);
+    return res.status(200).json(data);
+  } catch (error: any) {
+    return res.status(500).json({
+      error: "Failed to connect to Google.",
+      details: error?.message || "Unknown error",
+    });
+  }
+}
