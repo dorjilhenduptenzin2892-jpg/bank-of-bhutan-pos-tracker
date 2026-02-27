@@ -107,7 +107,17 @@ export default function App() {
     setIsSyncingStock(true);
     try {
       const response = await fetch('/api/cloud/stock');
-      if (!response.ok) throw new Error('Failed to fetch stock from cloud');
+      if (!response.ok) {
+        let errMsg = `HTTP error! status: ${response.status}`;
+        try {
+          const errData = await response.clone().json();
+          errMsg = errData.details ? `${errData.error}: ${errData.details}` : (errData.error || errMsg);
+        } catch {
+          const errText = await response.text().catch(() => '');
+          if (errText) errMsg = `${errMsg} - ${errText.substring(0, 200)}`;
+        }
+        throw new Error(errMsg);
+      }
       const data = await response.json();
       
       if (!Array.isArray(data)) throw new Error('Invalid stock data format');
@@ -300,7 +310,7 @@ export default function App() {
       if (!response.ok) {
         let errMsg = `HTTP error! status: ${response.status}`;
         try {
-          const errData = await response.json();
+          const errData = await response.clone().json();
           errMsg = errData.details ? `${errData.error}: ${errData.details}` : (errData.error || errMsg);
         } catch {
           const errText = await response.text().catch(() => '');
