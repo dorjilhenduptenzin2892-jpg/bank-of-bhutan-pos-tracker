@@ -15,6 +15,11 @@ View your app in AI Studio: https://ai.studio/apps/2bf5f6ca-1637-437b-9749-96840
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Create `.env.local` in the project root (you can copy from `.env.example`) and set:
+   - `GEMINI_API_KEY=...`
+   - `VITE_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/.../exec`
+3. In Google Apps Script, deploy as **Web app** and ensure:
+   - URL ends with `/exec` (not `/dev`)
+   - Access is allowed for your usage (for public fetch, use "Anyone")
+4. Run the app:
    `npm run dev`
