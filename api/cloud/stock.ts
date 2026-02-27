@@ -1,4 +1,4 @@
-import { extractJsonArray, getScriptUrl } from "./_shared";
+import { extractJsonArray, getGoogleHint, getScriptUrl, shortText } from "./_shared";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
@@ -15,12 +15,20 @@ export default async function handler(req: any, res: any) {
     if (!response.ok) {
       return res.status(response.status).json({
         error: `Google Script returned HTTP ${response.status}`,
-        details: text.substring(0, 500),
+        details: shortText(text),
       });
     }
 
-    const data = extractJsonArray(text);
-    return res.status(200).json(data);
+    try {
+      const data = extractJsonArray(text);
+      return res.status(200).json(data);
+    } catch {
+      return res.status(502).json({
+        error: "Google Script returned invalid JSON",
+        details: shortText(text),
+        hint: getGoogleHint(text),
+      });
+    }
   } catch (error: any) {
     return res.status(500).json({
       error: "Failed to fetch stock from cloud.",

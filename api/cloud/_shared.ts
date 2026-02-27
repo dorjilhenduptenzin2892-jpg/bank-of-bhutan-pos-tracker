@@ -20,3 +20,25 @@ export function extractJsonArray(text: string) {
 
   return JSON.parse(jsonStr);
 }
+
+export function getGoogleHint(text: string): string {
+  const lower = text.toLowerCase();
+
+  if (lower.includes("servicelogin") || lower.includes("google account")) {
+    return "Google login page returned. In Apps Script deployment, set access to Anyone and redeploy.";
+  }
+
+  if (lower.includes("script function not found")) {
+    return "Apps Script endpoint is reachable, but doGet/doPost handler is missing or mismatched.";
+  }
+
+  if (lower.includes("exception:") || lower.includes("error")) {
+    return "Apps Script returned an internal error. Check Apps Script execution logs.";
+  }
+
+  return "Google response was not valid JSON.";
+}
+
+export function shortText(text: string, max = 500): string {
+  return text.substring(0, max);
+}
