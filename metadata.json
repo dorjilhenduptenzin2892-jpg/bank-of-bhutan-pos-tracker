@@ -1,0 +1,5 @@
+{
+  "name": "Bank of Bhutan POS Tracker",
+  "description": "A comprehensive tool for tracking POS terminals, managing merchant reports, and monitoring payment status.",
+  "requestFramePermissions": []
+}
