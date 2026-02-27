@@ -1,4 +1,4 @@
-
+﻿
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
@@ -15,7 +15,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local"), override: true });
 
 const DEFAULT_GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbwLoBCeCIUTBgv1Whd5QbJZRJJIG5t0peaTcCteoArEd8X70J-8QCzyh3CPH7qZZOi7Qg/exec";
+  "https://script.google.com/macros/s/AKfycbyOz63Aehz-FiImn4NacvVk8-ZRH5r33G0UTgg5qZVTCNUTqHy_S0PIkuvCPanyD5pNpA/exec";
 
 const db = new Database("pos_tracker.db");
 
