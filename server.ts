@@ -15,7 +15,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local"), override: true });
 
 const DEFAULT_GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyOz63Aehz-FiImn4NacvVk8-ZRH5r33G0UTgg5qZVTCNUTqHy_S0PIkuvCPanyD5pNpA/exec";
+  "https://script.google.com/macros/s/AKfycbx9QVXJcIphAlZQsGw7q-RAmvJMdvPRUFrut9wPQHxRiOlGbwq-IURQ7aD0XabrZo8OEQ/exec";
 
 const db = new Database("pos_tracker.db");
 

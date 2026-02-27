@@ -1,5 +1,5 @@
 ﻿const DEFAULT_GOOGLE_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyOz63Aehz-FiImn4NacvVk8-ZRH5r33G0UTgg5qZVTCNUTqHy_S0PIkuvCPanyD5pNpA/exec";
+  "https://script.google.com/macros/s/AKfycbx9QVXJcIphAlZQsGw7q-RAmvJMdvPRUFrut9wPQHxRiOlGbwq-IURQ7aD0XabrZo8OEQ/exec";
 
 export function getScriptUrl(): string {
   return (
