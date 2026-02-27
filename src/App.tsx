@@ -42,6 +42,32 @@ function cn(...inputs: ClassValue[]) {
 }
 
 type Tab = 'upload' | 'summary' | 'dashboard' | 'tracker' | 'exports' | 'stock';
+const LOCAL_STOCK_KEY = 'bobl_stock_terminals';
+
+const computeLocalStockStats = (items: any[]) => ({
+  total: items.length,
+  in_stock: items.filter(t => t.status === 'IN_STOCK').length,
+  issued: items.filter(t => t.status === 'ISSUED').length,
+  returned: items.filter(t => t.status === 'RETURNED').length,
+  faulty: items.filter(t => t.status === 'FAULTY').length,
+  scrapped: items.filter(t => t.status === 'SCRAPPED').length,
+});
+
+const loadLocalStock = () => {
+  try {
+    const raw = localStorage.getItem(LOCAL_STOCK_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveLocalStock = (items: any[]) => {
+  try {
+    localStorage.setItem(LOCAL_STOCK_KEY, JSON.stringify(items));
+  } catch {}
+};
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('upload');
@@ -88,10 +114,26 @@ export default function App() {
       ]);
       
       if (statsRes.ok) setStockStats(await statsRes.json());
-      if (terminalsRes.ok) setTerminals(await terminalsRes.json());
+      if (terminalsRes.ok) {
+        const cloudTerminals = await terminalsRes.json();
+        if (Array.isArray(cloudTerminals) && cloudTerminals.length > 0) {
+          setTerminals(cloudTerminals);
+        } else {
+          const localItems = loadLocalStock();
+          if (localItems.length > 0) {
+            setTerminals(localItems);
+            setStockStats(computeLocalStockStats(localItems));
+          }
+        }
+      }
       if (settingsRes.ok) setStockSettings(await settingsRes.json());
     } catch (error) {
       console.error('Error fetching stock data:', error);
+      const localItems = loadLocalStock();
+      if (localItems.length > 0) {
+        setTerminals(localItems);
+        setStockStats(computeLocalStockStats(localItems));
+      }
     } finally {
       setIsStockLoading(false);
     }
@@ -151,8 +193,27 @@ export default function App() {
         alert(`Stock Sync Complete!\nTotal Terminals: ${result.total}\nNew Imported: ${result.imported}\nAlready Existed: ${result.skipped}`);
         fetchStockData();
       } else {
-        const err = await importResponse.json();
-        alert(`Sync failed: ${err.error}`);
+        const err = await importResponse.json().catch(() => ({ error: 'Stock API unavailable' }));
+        if (importResponse.status === 501) {
+          const existing = loadLocalStock();
+          const existingSet = new Set(existing.map((t: any) => String(t.serial_number).trim().toUpperCase()));
+          const newItems = serials
+            .filter(s => !existingSet.has(s))
+            .map(s => ({
+              serial_number: s,
+              model: 'DX8000',
+              batch_name: 'Cloud Master List',
+              procured_date: new Date().toISOString().split('T')[0],
+              status: 'IN_STOCK',
+            }));
+          const merged = [...existing, ...newItems];
+          saveLocalStock(merged);
+          setTerminals(merged);
+          setStockStats(computeLocalStockStats(merged));
+          alert(`Stock Sync Complete (Browser Storage)\nTotal Terminals: ${merged.length}\nNew Imported: ${newItems.length}\nAlready Existed: ${serials.length - newItems.length}`);
+        } else {
+          alert(`Sync failed: ${err.error}`);
+        }
       }
     } catch (error: any) {
       console.error('Error syncing stock:', error);
