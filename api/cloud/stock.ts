@@ -1,4 +1,4 @@
-import { extractJsonArray, getGoogleHint, getScriptUrl, shortText } from "./_shared";
+﻿import { extractJsonArray, getGoogleHint, getScriptUrl, shortText } from "./_shared.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {

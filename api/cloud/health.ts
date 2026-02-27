@@ -1,4 +1,4 @@
-import { getScriptUrl, shortText } from "./_shared";
+﻿import { getScriptUrl, shortText } from "./_shared.js";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
