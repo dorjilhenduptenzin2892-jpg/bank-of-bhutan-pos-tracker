@@ -112,6 +112,7 @@ export default function App() {
         try {
           const errData = await response.clone().json();
           errMsg = errData.details ? `${errData.error}: ${errData.details}` : (errData.error || errMsg);
+          if (errData.hint) errMsg = `${errMsg} | Hint: ${errData.hint}`;
         } catch {
           const errText = await response.text().catch(() => '');
           if (errText) errMsg = `${errMsg} - ${errText.substring(0, 200)}`;
@@ -312,6 +313,7 @@ export default function App() {
         try {
           const errData = await response.clone().json();
           errMsg = errData.details ? `${errData.error}: ${errData.details}` : (errData.error || errMsg);
+          if (errData.hint) errMsg = `${errMsg} | Hint: ${errData.hint}`;
         } catch {
           const errText = await response.text().catch(() => '');
           if (errText) errMsg = `${errMsg} - ${errText.substring(0, 200)}`;
