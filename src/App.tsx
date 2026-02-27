@@ -69,6 +69,53 @@ const saveLocalStock = (items: any[]) => {
   } catch {}
 };
 
+const filterLocalStock = (items: any[], statusFilter: string, search: string) => {
+  const q = String(search || '').trim().toLowerCase();
+  return items.filter((t: any) => {
+    const statusOk = !statusFilter || t.status === statusFilter;
+    const searchOk = !q || [
+      t.serial_number,
+      t.mid,
+      t.merchant_name,
+      t.tid
+    ].some(v => String(v || '').toLowerCase().includes(q));
+    return statusOk && searchOk;
+  });
+};
+
+const applyAssignmentsToLocalStock = (items: any[], assignments: any[]) => {
+  const assignmentMap = new Map<string, any>();
+  assignments.forEach((a: any) => {
+    const serial = String(a.serial || '').trim().toUpperCase();
+    if (!serial) return;
+    assignmentMap.set(serial, a);
+  });
+
+  let updated = 0;
+  const next = items.map((t: any) => {
+    const serial = String(t.serial_number || '').trim().toUpperCase();
+    const a = assignmentMap.get(serial);
+    if (!a) return t;
+
+    const hasAssignment = Boolean(String(a.mid || '').trim() || String(a.tid || '').trim() || String(a.merchantName || '').trim());
+    const nextStatus = hasAssignment ? 'ISSUED' : (t.status || 'IN_STOCK');
+    if (nextStatus !== t.status || String(t.mid || '') !== String(a.mid || '') || String(t.tid || '') !== String(a.tid || '')) {
+      updated++;
+    }
+
+    return {
+      ...t,
+      status: nextStatus,
+      mid: a.mid || t.mid || null,
+      merchant_name: a.merchantName || t.merchant_name || null,
+      tid: a.tid || t.tid || null,
+      issue_date: hasAssignment ? (t.issue_date || new Date().toISOString().split('T')[0]) : t.issue_date,
+    };
+  });
+
+  return { next, updated };
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('upload');
   const [rawPosData, setRawPosData] = useState<any[]>([]);
@@ -120,20 +167,18 @@ export default function App() {
           setTerminals(cloudTerminals);
         } else {
           const localItems = loadLocalStock();
-          if (localItems.length > 0) {
-            setTerminals(localItems);
-            setStockStats(computeLocalStockStats(localItems));
-          }
+          const filtered = filterLocalStock(localItems, stockStatusFilter, stockSearch);
+          setTerminals(filtered);
+          setStockStats(computeLocalStockStats(localItems));
         }
       }
       if (settingsRes.ok) setStockSettings(await settingsRes.json());
     } catch (error) {
       console.error('Error fetching stock data:', error);
       const localItems = loadLocalStock();
-      if (localItems.length > 0) {
-        setTerminals(localItems);
-        setStockStats(computeLocalStockStats(localItems));
-      }
+      const filtered = filterLocalStock(localItems, stockStatusFilter, stockSearch);
+      setTerminals(filtered);
+      setStockStats(computeLocalStockStats(localItems));
     } finally {
       setIsStockLoading(false);
     }
@@ -511,13 +556,25 @@ export default function App() {
 
       if (response.ok) {
         const result = await response.json();
+        if (result?.mode === 'no-op') {
+          const existing = loadLocalStock();
+          const applied = applyAssignmentsToLocalStock(existing, assignments);
+          saveLocalStock(applied.next);
+          if (activeTab === 'stock') {
+            const filtered = filterLocalStock(applied.next, stockStatusFilter, stockSearch);
+            setTerminals(filtered);
+            setStockStats(computeLocalStockStats(applied.next));
+          }
+          console.log(`Stock assignments synced (browser storage): ${applied.updated} updated.`);
+          return;
+        }
         console.log(`Stock assignments synced: ${result.updated} updated, ${result.ignored} ignored.`);
         if (activeTab === 'stock') fetchStockData();
       }
     } catch (error) {
       console.error('Error syncing stock assignments:', error);
     }
-  }, [activeTab, fetchStockData]);
+  }, [activeTab, fetchStockData, stockSearch, stockStatusFilter]);
 
   // Sync stock when posData changes
   useEffect(() => {
